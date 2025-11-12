@@ -83,8 +83,25 @@ Your zone system is now active!
 | `/kzones start` | Activate zone restrictions |
 | `/kzones stop` | Deactivate restrictions |
 | `/kzones next <player>` | Let player move to next zone |
+| `/kzones target set <zone>` | Set target zone for all players |
+| `/kzones toggle backward` | Toggle backward movement prevention |
 | `/kzones status` | Check current status |
 | `/kzones reload` | Reload config changes |
+
+## Advanced Features
+
+### Set a Target Zone
+```
+/kzones target set zone2
+```
+All players must reach `zone2`. After that, they can move freely!
+
+### Toggle Restrictions
+```
+/kzones toggle backward    # Allow/prevent going backward
+/kzones toggle leaving     # Allow/prevent leaving current zone
+/kzones toggle freeafter   # Allow/prevent free movement after target
+```
 
 ## Common Issues
 

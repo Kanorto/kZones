@@ -28,6 +28,33 @@ zone-sequences:
     - "gold_arena"
     - "champion_arena"
 
+# Movement restrictions control player movement behavior
+restrictions:
+  # Prevent players from going backward in the sequence
+  # If true, players cannot re-enter previous zones they've already passed
+  prevent-backward-movement: true
+  
+  # Prevent players from leaving their current zone
+  # If true, players must wait for admin to progress them with /kzones next
+  prevent-leaving-current-zone: true
+  
+  # Allow free movement after reaching target zone
+  # If true and target is set, players can move freely after reaching it
+  free-movement-after-target: true
+
+# Target zone settings - set a specific goal for all players
+target:
+  # Enable target zone feature
+  enabled: false
+  
+  # Target zone name (must be in one of the sequences)
+  # Example: "boss_arena" - all players must reach this zone
+  zone: ""
+  
+  # Automatically progress players to target when sequence starts
+  # If true, players will be moved to the zone before target automatically
+  auto-progress-to-target: false
+
 # Teleport settings control how players are pushed back
 teleport:
   # Distance in blocks to push player back (higher = stronger pushback)
@@ -50,6 +77,24 @@ messages:
   
   # Message when trying to leave current region
   cannot-leave: "&cYou must complete this zone before moving on!"
+  
+  # Message when trying to go backward in sequence
+  cannot-go-backward: "&cYou cannot go backward! Continue moving forward."
+  
+  # Message when sequence starts
+  sequence-started: "&aZone sequence started! Follow the path."
+  
+  # Message when sequence stops
+  sequence-stopped: "&eZone sequence stopped."
+  
+  # Message when player is allowed to proceed to next zone
+  next-zone: "&aYou can now proceed to the next zone!"
+  
+  # Message when target zone is set (use {zone} for zone name)
+  target-set: "&aTarget zone set to: &e{zone}"
+  
+  # Message when player reaches target zone
+  target-reached: "&aYou have reached the target zone!"
   
   # Message when sequence starts
   sequence-started: "&aZone sequence started! Follow the path."
