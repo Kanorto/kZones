@@ -19,12 +19,16 @@ public class ZoneManager {
     private final Map<String, List<String>> zoneSequences;
     private final Map<UUID, PlayerZoneData> playerData;
     private boolean sequenceActive;
+    private String targetZone;
+    private boolean targetEnabled;
     
     public ZoneManager(KZonesPlugin plugin) {
         this.plugin = plugin;
         this.zoneSequences = new HashMap<>();
         this.playerData = new ConcurrentHashMap<>();
         this.sequenceActive = false;
+        this.targetZone = null;
+        this.targetEnabled = false;
         loadSequences();
     }
     
@@ -47,6 +51,14 @@ public class ZoneManager {
         
         if (zoneSequences.isEmpty()) {
             plugin.getLogger().warning("No zone sequences configured! Please configure sequences in config.yml");
+        }
+        
+        // Load target zone settings
+        targetEnabled = plugin.getConfig().getBoolean("target.enabled", false);
+        targetZone = plugin.getConfig().getString("target.zone", "");
+        
+        if (targetEnabled && !targetZone.isEmpty()) {
+            plugin.getLogger().info("Target zone enabled: " + targetZone);
         }
     }
     
@@ -141,8 +153,26 @@ public class ZoneManager {
             return true;
         }
         
+        // Check if trying to enter a previous zone (backward movement)
+        if (plugin.getConfig().getBoolean("restrictions.prevent-backward-movement", true)) {
+            int enteringZoneIndex = data.getZoneIndex(regionName);
+            if (enteringZoneIndex >= 0 && enteringZoneIndex < data.getCurrentZoneIndex()) {
+                // Trying to go backward
+                return false;
+            }
+        }
+        
         // Check if the region matches the expected zone
-        return regionName.equalsIgnoreCase(expectedZone);
+        boolean canEnter = regionName.equalsIgnoreCase(expectedZone);
+        
+        // If target is enabled and player reached it, allow free movement
+        if (targetEnabled && !targetZone.isEmpty() && data.hasReachedTarget()) {
+            if (plugin.getConfig().getBoolean("restrictions.free-movement-after-target", true)) {
+                return true;
+            }
+        }
+        
+        return canEnter;
     }
     
     /**
@@ -165,6 +195,18 @@ public class ZoneManager {
         String currentZone = data.getCurrentZone();
         if (currentZone == null) {
             return true;
+        }
+        
+        // Check config setting for leaving current zone
+        if (!plugin.getConfig().getBoolean("restrictions.prevent-leaving-current-zone", true)) {
+            return true; // Allow leaving if setting is disabled
+        }
+        
+        // If target is enabled and player reached it, allow free movement
+        if (targetEnabled && !targetZone.isEmpty() && data.hasReachedTarget()) {
+            if (plugin.getConfig().getBoolean("restrictions.free-movement-after-target", true)) {
+                return true;
+            }
         }
         
         // Don't allow leaving the current zone
@@ -227,17 +269,84 @@ public class ZoneManager {
     }
     
     /**
+     * Set target zone for all players
+     */
+    public boolean setTargetZone(String zoneName) {
+        // Verify the zone exists in a sequence
+        boolean found = false;
+        for (List<String> sequence : zoneSequences.values()) {
+            if (sequence.stream().anyMatch(z -> z.equalsIgnoreCase(zoneName))) {
+                found = true;
+                break;
+            }
+        }
+        
+        if (!found) {
+            return false;
+        }
+        
+        targetZone = zoneName;
+        targetEnabled = true;
+        
+        // Update config
+        plugin.getConfig().set("target.enabled", true);
+        plugin.getConfig().set("target.zone", zoneName);
+        plugin.saveConfig();
+        
+        // Update all player data with target
+        for (PlayerZoneData data : playerData.values()) {
+            data.setTargetZone(zoneName);
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Clear target zone
+     */
+    public void clearTargetZone() {
+        targetZone = null;
+        targetEnabled = false;
+        
+        plugin.getConfig().set("target.enabled", false);
+        plugin.getConfig().set("target.zone", "");
+        plugin.saveConfig();
+        
+        for (PlayerZoneData data : playerData.values()) {
+            data.setTargetZone(null);
+        }
+    }
+    
+    /**
+     * Get current target zone
+     */
+    public String getTargetZone() {
+        return targetZone;
+    }
+    
+    /**
+     * Check if target is enabled
+     */
+    public boolean isTargetEnabled() {
+        return targetEnabled && targetZone != null && !targetZone.isEmpty();
+    }
+    
+    /**
      * Inner class to track player zone progress
      */
     public static class PlayerZoneData {
         private final String sequenceName;
         private final List<String> sequence;
         private int currentZoneIndex;
+        private String targetZone;
+        private boolean reachedTarget;
         
         public PlayerZoneData(String sequenceName, List<String> sequence) {
             this.sequenceName = sequenceName;
             this.sequence = new ArrayList<>(sequence);
             this.currentZoneIndex = 0;
+            this.targetZone = null;
+            this.reachedTarget = false;
         }
         
         public String getCurrentZone() {
@@ -250,6 +359,7 @@ public class ZoneManager {
         public boolean moveToNext() {
             if (currentZoneIndex < sequence.size() - 1) {
                 currentZoneIndex++;
+                checkIfReachedTarget();
                 return true;
             }
             return false; // Already at the end
@@ -269,6 +379,58 @@ public class ZoneManager {
         
         public boolean isCompleted() {
             return currentZoneIndex >= sequence.size();
+        }
+        
+        /**
+         * Get the index of a zone in the sequence
+         */
+        public int getZoneIndex(String zoneName) {
+            for (int i = 0; i < sequence.size(); i++) {
+                if (sequence.get(i).equalsIgnoreCase(zoneName)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        
+        /**
+         * Set target zone for this player
+         */
+        public void setTargetZone(String targetZone) {
+            this.targetZone = targetZone;
+            this.reachedTarget = false;
+            checkIfReachedTarget();
+        }
+        
+        /**
+         * Check if player has reached target zone
+         */
+        private void checkIfReachedTarget() {
+            if (targetZone != null && !targetZone.isEmpty()) {
+                String currentZone = getCurrentZone();
+                if (currentZone != null && currentZone.equalsIgnoreCase(targetZone)) {
+                    reachedTarget = true;
+                }
+                // Also check if we've passed it
+                int targetIndex = getZoneIndex(targetZone);
+                if (targetIndex >= 0 && currentZoneIndex > targetIndex) {
+                    reachedTarget = true;
+                }
+            }
+        }
+        
+        /**
+         * Check if target has been reached
+         */
+        public boolean hasReachedTarget() {
+            return reachedTarget;
+        }
+        
+        /**
+         * Get target zone
+         */
+        public String getTargetZone() {
+            return targetZone;
         }
     }
 }

@@ -6,13 +6,17 @@ Zones minecraft plugin to manage player movement between WorldGuard regions. Thi
 
 - **Zone Sequences**: Configure sequences of WorldGuard regions that players must follow in order
 - **Movement Control**: Prevent players from entering zones out of sequence
-- **Exit Restrictions**: Lock players in their current zone until they're allowed to proceed
+- **Backward Movement Prevention**: Players cannot go back to previous zones (configurable)
+- **Exit Restrictions**: Lock players in their current zone until they're allowed to proceed (configurable)
+- **Target Zone System**: Set a specific target zone that all players must reach
+- **Free Movement After Target**: Allow players to move freely after reaching the target zone (configurable)
 - **Soft Teleportation**: Gently push players back if they try to violate the sequence
 - **Visual/Audio Feedback**: Configurable particles and sounds when restricting movement
-- **Commands**: Full command system to start/stop sequences and move players to next zones
+- **Commands**: Full command system with toggle options for runtime configuration
 - **Permissions**: Bypass permission for administrators
 - **Multi-Sequence Support**: Configure multiple zone sequences
 - **Per-Player Tracking**: Each player's progress is tracked individually
+- **Highly Configurable**: Toggle restrictions and settings via commands or config
 
 ## Requirements
 
@@ -47,6 +51,16 @@ zone-sequences:
     - "quest_zone_1"
     - "quest_zone_2"
 
+restrictions:
+  prevent-backward-movement: true
+  prevent-leaving-current-zone: true
+  free-movement-after-target: true
+
+target:
+  enabled: false
+  zone: ""
+  auto-progress-to-target: false
+
 teleport:
   pushback-distance: 2.0
   show-particles: true
@@ -56,9 +70,12 @@ teleport:
 messages:
   wrong-sequence: "&cYou cannot enter this region yet! Follow the correct sequence."
   cannot-leave: "&cYou must complete this zone before moving on!"
+  cannot-go-backward: "&cYou cannot go backward! Continue moving forward."
   sequence-started: "&aZone sequence started! Follow the path."
   sequence-stopped: "&eZone sequence stopped."
   next-zone: "&aYou can now proceed to the next zone!"
+  target-set: "&aTarget zone set to: &e{zone}"
+  target-reached: "&aYou have reached the target zone!"
   prefix: "&8[&6kZones&8]&r "
 
 debug: false
@@ -68,11 +85,22 @@ debug: false
 
 All commands require the `kzones.admin` permission (default: op).
 
+### Basic Commands
 - `/kzones start` - Start the zone sequence for all players
 - `/kzones stop` - Stop the zone sequence
 - `/kzones next <player>` - Allow a specific player to move to the next zone in their sequence
 - `/kzones status` - Display current status and configured sequences
 - `/kzones reload` - Reload the plugin configuration
+
+### Target Zone Commands
+- `/kzones target set <zone>` - Set a target zone that all players must reach
+- `/kzones target clear` - Clear the current target zone
+- `/kzones target info` - Display information about the current target zone
+
+### Toggle Commands (Runtime Configuration)
+- `/kzones toggle backward` - Toggle prevention of backward movement
+- `/kzones toggle leaving` - Toggle prevention of leaving current zone
+- `/kzones toggle freeafter` - Toggle free movement after reaching target
 
 **Aliases**: `/kz`, `/zones`
 

@@ -72,6 +72,17 @@ public class PlayerMoveListener implements Listener {
         // Handle entering new regions
         for (String region : enteringRegions) {
             if (!zoneManager.canEnterRegion(player, region)) {
+                // Check if it's backward movement
+                ZoneManager.PlayerZoneData data = zoneManager.getPlayerData(player.getUniqueId());
+                if (data != null) {
+                    int enteringZoneIndex = data.getZoneIndex(region);
+                    if (enteringZoneIndex >= 0 && enteringZoneIndex < data.getCurrentZoneIndex()) {
+                        // Backward movement
+                        teleportPlayerBack(player, from, to);
+                        sendMessage(player, "cannot-go-backward");
+                        return;
+                    }
+                }
                 // Player cannot enter this region yet
                 teleportPlayerBack(player, from, to);
                 sendMessage(player, "wrong-sequence");

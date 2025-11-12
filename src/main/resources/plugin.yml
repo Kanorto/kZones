@@ -9,7 +9,7 @@ depend: [WorldGuard]
 commands:
   kzones:
     description: Manage zone sequences
-    usage: /<command> <start|stop|next|status|reload>
+    usage: /<command> <start|stop|next|target|toggle|status|reload>
     permission: kzones.admin
     aliases: [kz, zones]
 
