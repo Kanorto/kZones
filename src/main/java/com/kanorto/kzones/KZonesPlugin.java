@@ -67,15 +67,11 @@ public class KZonesPlugin extends JavaPlugin {
     }
     
     /**
-     * Save configuration asynchronously to avoid blocking the main thread
+     * Save configuration synchronously on the main thread.
+     * Note: Bukkit's saveConfig() is not thread-safe and must not be called asynchronously.
      */
-    public void saveConfigAsync() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                saveConfig();
-            }
-        }.runTaskAsynchronously(this);
+    public void saveConfigSync() {
+        saveConfig();
     }
     
     // Getters

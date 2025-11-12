@@ -74,19 +74,17 @@ public class PlayerMoveListener implements Listener {
             return;
         }
         
-        // Skip if already processing this player's movement
-        if (processingPlayers.contains(playerId)) {
+        // Skip if already processing this player's movement (atomic check-and-set)
+        if (!processingPlayers.add(playerId)) {
             return;
         }
         
         Location from = event.getFrom();
         Location to = event.getTo();
         if (to == null) {
+            processingPlayers.remove(playerId);
             return;
         }
-        
-        // Mark player as being processed
-        processingPlayers.add(playerId);
         
         // Perform expensive region lookups asynchronously
         new BukkitRunnable() {
@@ -110,38 +108,39 @@ public class PlayerMoveListener implements Listener {
                         new BukkitRunnable() {
                             @Override
                             public void run() {
-                                // Verify player is still online and event is still valid
-                                if (!player.isOnline()) {
+                                // Re-fetch player object to ensure it's valid
+                                Player onlinePlayer = plugin.getServer().getPlayer(playerId);
+                                if (onlinePlayer == null || !onlinePlayer.isOnline()) {
                                     return;
                                 }
                                 
                                 // Handle entering new regions
                                 for (String region : enteringRegions) {
-                                    if (!zoneManager.canEnterRegion(player, region)) {
+                                    if (!zoneManager.canEnterRegion(onlinePlayer, region)) {
                                         // Check if it's backward movement
                                         ZoneManager.PlayerZoneData data = zoneManager.getPlayerData(playerId);
                                         if (data != null) {
                                             int enteringZoneIndex = data.getZoneIndex(region);
                                             if (enteringZoneIndex >= 0 && enteringZoneIndex < data.getCurrentZoneIndex()) {
                                                 // Backward movement
-                                                teleportPlayerBack(player, from, to);
-                                                sendMessage(player, "cannot-go-backward");
+                                                teleportPlayerBack(onlinePlayer, from, to);
+                                                sendMessage(onlinePlayer, "cannot-go-backward");
                                                 return;
                                             }
                                         }
                                         // Player cannot enter this region yet
-                                        teleportPlayerBack(player, from, to);
-                                        sendMessage(player, "wrong-sequence");
+                                        teleportPlayerBack(onlinePlayer, from, to);
+                                        sendMessage(onlinePlayer, "wrong-sequence");
                                         return;
                                     }
                                 }
                                 
                                 // Handle leaving current regions
                                 for (String region : leavingRegions) {
-                                    if (!zoneManager.canLeaveRegion(player, region)) {
+                                    if (!zoneManager.canLeaveRegion(onlinePlayer, region)) {
                                         // Player cannot leave this region yet
-                                        teleportPlayerBack(player, from, to);
-                                        sendMessage(player, "cannot-leave");
+                                        teleportPlayerBack(onlinePlayer, from, to);
+                                        sendMessage(onlinePlayer, "cannot-leave");
                                         return;
                                     }
                                 }
@@ -149,13 +148,8 @@ public class PlayerMoveListener implements Listener {
                         }.runTask(plugin);
                     }
                 } finally {
-                    // Always remove from processing set after a short delay
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            processingPlayers.remove(playerId);
-                        }
-                    }.runTaskLater(plugin, 1L);
+                    // Always remove from processing set immediately
+                    processingPlayers.remove(playerId);
                 }
             }
         }.runTaskAsynchronously(plugin);

@@ -227,21 +227,21 @@ public class KZonesCommand implements CommandExecutor, TabCompleter {
             case "backward":
                 boolean currentBackward = plugin.getConfig().getBoolean("restrictions.prevent-backward-movement", true);
                 plugin.getConfig().set("restrictions.prevent-backward-movement", !currentBackward);
-                plugin.saveConfigAsync();
+                plugin.saveConfigSync();
                 sendMessage(sender, "&aPrevent backward movement: &f" + !currentBackward);
                 break;
                 
             case "leaving":
                 boolean currentLeaving = plugin.getConfig().getBoolean("restrictions.prevent-leaving-current-zone", true);
                 plugin.getConfig().set("restrictions.prevent-leaving-current-zone", !currentLeaving);
-                plugin.saveConfigAsync();
+                plugin.saveConfigSync();
                 sendMessage(sender, "&aPrevent leaving current zone: &f" + !currentLeaving);
                 break;
                 
             case "freeafter":
                 boolean currentFree = plugin.getConfig().getBoolean("restrictions.free-movement-after-target", true);
                 plugin.getConfig().set("restrictions.free-movement-after-target", !currentFree);
-                plugin.saveConfigAsync();
+                plugin.saveConfigSync();
                 sendMessage(sender, "&aFree movement after target: &f" + !currentFree);
                 break;
                 
