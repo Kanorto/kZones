@@ -39,7 +39,9 @@ public class KZonesPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerMoveListener(this), this);
         
         // Register commands
-        getCommand("kzones").setExecutor(new KZonesCommand(this));
+        KZonesCommand commandHandler = new KZonesCommand(this);
+        getCommand("kzones").setExecutor(commandHandler);
+        getCommand("kzones").setTabCompleter(commandHandler);
         
         getLogger().info("kZones has been enabled!");
     }

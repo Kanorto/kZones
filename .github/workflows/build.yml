@@ -121,5 +121,5 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add pom.xml
-          git commit -m "chore: bump version to ${{ steps.next_version.outputs.new_version }}" || echo "No changes to commit"
+          git commit -m "chore: bump version to ${{ steps.next_version.outputs.new_version }} [skip ci]" || echo "No changes to commit"
           git push || echo "No changes to push"

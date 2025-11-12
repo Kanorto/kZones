@@ -96,15 +96,6 @@ messages:
   # Message when player reaches target zone
   target-reached: "&aYou have reached the target zone!"
   
-  # Message when sequence starts
-  sequence-started: "&aZone sequence started! Follow the path."
-  
-  # Message when sequence stops
-  sequence-stopped: "&eZone sequence stopped."
-  
-  # Message when player is allowed to proceed to next zone
-  next-zone: "&aYou can now proceed to the next zone!"
-  
   # Prefix added to all messages
   prefix: "&8[&6kZones&8]&r "
 

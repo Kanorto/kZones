@@ -28,7 +28,7 @@ Zones minecraft plugin to manage player movement between WorldGuard regions. Thi
 ## Installation
 
 1. Build the plugin using Maven: `mvn clean package`
-2. Copy `target/kZones-1.0.0.jar` to your server's `plugins/` folder
+2. Copy `target/kZones-1.1.0.jar` to your server's `plugins/` folder
 3. Ensure WorldGuard and WorldEdit are installed
 4. Start/restart your server
 5. Configure zone sequences in `plugins/kZones/config.yml`
@@ -161,7 +161,7 @@ cd kZones
 # Build with Maven
 mvn clean package
 
-# The compiled JAR will be in target/kZones-1.0.0.jar
+# The compiled JAR will be in target/kZones-1.1.0.jar
 ```
 
 ## Support

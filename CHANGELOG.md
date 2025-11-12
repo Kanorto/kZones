@@ -76,7 +76,7 @@ New messages:
 - `target-set` - Message when target zone is set
 - `target-reached` - Message when target is reached
 
-## [1.0.0] - 2025-11-12
+## [1.0.0] - 2024-11-12
 
 ### Initial Release
 

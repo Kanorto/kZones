@@ -12,6 +12,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.util.Vector;
 
 import java.util.Set;
+import java.util.HashSet;
 
 public class PlayerMoveListener implements Listener {
     
@@ -56,6 +57,9 @@ public class PlayerMoveListener implements Listener {
         
         Location from = event.getFrom();
         Location to = event.getTo();
+        if (to == null) {
+            return;
+        }
         
         // Get regions at both locations
         Set<String> fromRegions = zoneManager.getRegionsAt(from);

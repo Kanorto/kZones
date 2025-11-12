@@ -30,12 +30,12 @@ cd kZones
 # Build with Maven (requires internet connection)
 mvn clean package
 
-# The JAR will be created at: target/kZones-1.0.0.jar
+# The JAR will be created at: target/kZones-1.1.0.jar
 ```
 
 ### Step 3: Install kZones
 
-1. Copy `kZones-1.0.0.jar` to your server's `plugins/` folder
+1. Copy `kZones-1.1.0.jar` to your server's `plugins/` folder
 2. Restart your server
 3. The plugin will create a `plugins/kZones/` folder with default `config.yml`
 

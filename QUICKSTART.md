@@ -19,14 +19,14 @@ git clone https://github.com/Kanorto/kZones.git
 cd kZones
 mvn clean package
 
-# Find the JAR at: target/kZones-1.0.0.jar
+# Find the JAR at: target/kZones-1.1.0.jar
 ```
 
 ## 3. Install
 
 ```bash
 # Copy to your server
-cp target/kZones-1.0.0.jar /path/to/server/plugins/
+cp target/kZones-1.1.0.jar /path/to/server/plugins/
 
 # Restart server
 # Plugin will create: plugins/kZones/config.yml

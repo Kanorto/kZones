@@ -11,8 +11,10 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class KZonesCommand implements CommandExecutor, TabCompleter {
     
@@ -331,13 +333,15 @@ public class KZonesCommand implements CommandExecutor, TabCompleter {
         } else if (args.length == 3 && args[0].equalsIgnoreCase("target") && args[1].equalsIgnoreCase("set")) {
             // Tab complete zone names for target set
             String input = args[2].toLowerCase();
+            Set<String> uniqueZones = new HashSet<>();
             for (Map.Entry<String, List<String>> entry : zoneManager.getZoneSequences().entrySet()) {
                 for (String zone : entry.getValue()) {
                     if (zone.toLowerCase().startsWith(input)) {
-                        completions.add(zone);
+                        uniqueZones.add(zone);
                     }
                 }
             }
+            completions.addAll(uniqueZones);
         }
         
         return completions;
