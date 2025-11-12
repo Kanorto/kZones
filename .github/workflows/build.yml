@@ -77,13 +77,6 @@ jobs:
           echo "artifact_path=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
           echo "artifact_name=$(basename $ARTIFACT_NAME)" >> $GITHUB_OUTPUT
       
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: kZones-${{ steps.next_version.outputs.new_version }}
-          path: ${{ steps.get_artifact.outputs.artifact_path }}
-          retention-days: 90
-      
       - name: Create Release
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         uses: softprops/action-gh-release@v1
