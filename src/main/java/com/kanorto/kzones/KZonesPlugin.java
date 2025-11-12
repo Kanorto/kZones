@@ -7,6 +7,7 @@ import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.logging.Level;
 
@@ -63,6 +64,14 @@ public class KZonesPlugin extends JavaPlugin {
         reloadConfig();
         zoneManager.reload();
         getLogger().info("kZones configuration reloaded!");
+    }
+    
+    /**
+     * Save configuration synchronously on the main thread.
+     * Note: Bukkit's saveConfig() is not thread-safe and must not be called asynchronously.
+     */
+    public void saveConfigSync() {
+        saveConfig();
     }
     
     // Getters

@@ -248,6 +248,13 @@ public class ZoneManager {
     }
     
     /**
+     * Remove player's zone data (called on disconnect to prevent memory leaks)
+     */
+    public void removePlayerData(UUID playerId) {
+        playerData.remove(playerId);
+    }
+    
+    /**
      * Check if sequence is active
      */
     public boolean isSequenceActive() {
@@ -291,7 +298,7 @@ public class ZoneManager {
         // Update config
         plugin.getConfig().set("target.enabled", true);
         plugin.getConfig().set("target.zone", zoneName);
-        plugin.saveConfig();
+        plugin.saveConfigSync();
         
         // Update all player data with target
         for (PlayerZoneData data : playerData.values()) {
@@ -310,7 +317,7 @@ public class ZoneManager {
         
         plugin.getConfig().set("target.enabled", false);
         plugin.getConfig().set("target.zone", "");
-        plugin.saveConfig();
+        plugin.saveConfigSync();
         
         for (PlayerZoneData data : playerData.values()) {
             data.setTargetZone(null);
