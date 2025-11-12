@@ -70,6 +70,20 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
       
+      - name: Get artifact name
+        id: get_artifact
+        run: |
+          ARTIFACT_NAME=$(ls target/*.jar | grep -v original | head -n 1)
+          echo "artifact_path=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+          echo "artifact_name=$(basename $ARTIFACT_NAME)" >> $GITHUB_OUTPUT
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kZones-${{ steps.next_version.outputs.new_version }}
+          path: ${{ steps.get_artifact.outputs.artifact_path }}
+          retention-days: 90
+      
       - name: Create Release
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         uses: softprops/action-gh-release@v1
@@ -85,17 +99,17 @@ jobs:
             - See [CHANGELOG.md](CHANGELOG.md) for details
             
             ### Installation
-            1. Build from source: `mvn clean package`
-            2. Find the JAR file in `target/` directory
-            3. Place it in your server's `plugins/` folder
-            4. Restart your server
-            5. Configure in `plugins/kZones/config.yml`
+            1. Download the JAR file below
+            2. Place it in your server's `plugins/` folder
+            3. Restart your server
+            4. Configure in `plugins/kZones/config.yml`
             
             ### Requirements
             - Minecraft Server 1.21.4 or compatible
             - Java 21 or higher
             - WorldGuard plugin
             - WorldEdit plugin
+          files: ${{ steps.get_artifact.outputs.artifact_path }}
           draft: false
           prerelease: false
         env:
