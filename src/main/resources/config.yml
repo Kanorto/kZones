@@ -1,0 +1,41 @@
+# kZones Configuration
+
+# Define your zone sequences here
+# Each sequence is a list of WorldGuard region names in order
+# Players must follow this order when moving through regions
+zone-sequences:
+  # Example sequence:
+  # sequence1:
+  #   - "spawn"
+  #   - "tutorial_1"
+  #   - "tutorial_2"
+  #   - "arena"
+
+# Teleport settings
+teleport:
+  # How far back to teleport players (in blocks)
+  pushback-distance: 2.0
+  # Show particles when teleporting
+  show-particles: true
+  # Play sound when teleporting
+  play-sound: true
+  # Sound to play (leave empty to disable)
+  sound: "ENTITY_ENDERMAN_TELEPORT"
+
+# Messages
+messages:
+  # Message when player tries to enter wrong region
+  wrong-sequence: "&cYou cannot enter this region yet! Follow the correct sequence."
+  # Message when player tries to leave current region
+  cannot-leave: "&cYou must complete this zone before moving on!"
+  # Message when sequence starts
+  sequence-started: "&aZone sequence started! Follow the path."
+  # Message when sequence stops
+  sequence-stopped: "&eZone sequence stopped."
+  # Message when moved to next zone
+  next-zone: "&aYou can now proceed to the next zone!"
+  # Prefix for all messages
+  prefix: "&8[&6kZones&8]&r "
+
+# Debug mode (shows detailed information)
+debug: false
