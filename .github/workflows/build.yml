@@ -18,6 +18,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # For creating releases and pushing commits
+      packages: read   # For reading packages
     
     steps:
       - name: Checkout code
