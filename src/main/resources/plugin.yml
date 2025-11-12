@@ -1,0 +1,22 @@
+name: kZones
+version: ${project.version}
+main: com.kanorto.kzones.KZonesPlugin
+api-version: '1.21'
+author: Kanorto
+description: Zones minecraft plugin to manage player movement between WorldGuard regions
+depend: [WorldGuard]
+
+commands:
+  kzones:
+    description: Manage zone sequences
+    usage: /<command> <start|stop|next|target|toggle|status|reload>
+    permission: kzones.admin
+    aliases: [kz, zones]
+
+permissions:
+  kzones.admin:
+    description: Access to all kZones commands
+    default: op
+  kzones.bypass:
+    description: Bypass zone restrictions
+    default: false
