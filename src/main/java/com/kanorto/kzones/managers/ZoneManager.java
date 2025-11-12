@@ -248,6 +248,13 @@ public class ZoneManager {
     }
     
     /**
+     * Remove player's zone data (called on disconnect to prevent memory leaks)
+     */
+    public void removePlayerData(UUID playerId) {
+        playerData.remove(playerId);
+    }
+    
+    /**
      * Check if sequence is active
      */
     public boolean isSequenceActive() {

@@ -9,19 +9,26 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.Set;
 import java.util.HashSet;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerMoveListener implements Listener {
     
     private final KZonesPlugin plugin;
     private final ZoneManager zoneManager;
+    // Track players currently being processed to avoid duplicate checks
+    private final Set<UUID> processingPlayers;
     
     public PlayerMoveListener(KZonesPlugin plugin) {
         this.plugin = plugin;
         this.zoneManager = plugin.getZoneManager();
+        this.processingPlayers = ConcurrentHashMap.newKeySet();
     }
     
     @EventHandler(priority = EventPriority.HIGH)
@@ -34,6 +41,17 @@ public class PlayerMoveListener implements Listener {
         }
     }
     
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        
+        // Clean up player data to prevent memory leaks
+        zoneManager.removePlayerData(player.getUniqueId());
+        
+        // Remove from processing set
+        processingPlayers.remove(player.getUniqueId());
+    }
+    
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent event) {
         // Only check if player actually moved to a different block
@@ -44,6 +62,7 @@ public class PlayerMoveListener implements Listener {
         }
         
         Player player = event.getPlayer();
+        UUID playerId = player.getUniqueId();
         
         // Skip if player has bypass permission
         if (player.hasPermission("kzones.bypass")) {
@@ -55,54 +74,91 @@ public class PlayerMoveListener implements Listener {
             return;
         }
         
+        // Skip if already processing this player's movement
+        if (processingPlayers.contains(playerId)) {
+            return;
+        }
+        
         Location from = event.getFrom();
         Location to = event.getTo();
         if (to == null) {
             return;
         }
         
-        // Get regions at both locations
-        Set<String> fromRegions = zoneManager.getRegionsAt(from);
-        Set<String> toRegions = zoneManager.getRegionsAt(to);
+        // Mark player as being processed
+        processingPlayers.add(playerId);
         
-        // Check if player is entering a new region
-        Set<String> enteringRegions = new HashSet<>(toRegions);
-        enteringRegions.removeAll(fromRegions);
-        
-        // Check if player is leaving a region
-        Set<String> leavingRegions = new HashSet<>(fromRegions);
-        leavingRegions.removeAll(toRegions);
-        
-        // Handle entering new regions
-        for (String region : enteringRegions) {
-            if (!zoneManager.canEnterRegion(player, region)) {
-                // Check if it's backward movement
-                ZoneManager.PlayerZoneData data = zoneManager.getPlayerData(player.getUniqueId());
-                if (data != null) {
-                    int enteringZoneIndex = data.getZoneIndex(region);
-                    if (enteringZoneIndex >= 0 && enteringZoneIndex < data.getCurrentZoneIndex()) {
-                        // Backward movement
-                        teleportPlayerBack(player, from, to);
-                        sendMessage(player, "cannot-go-backward");
-                        return;
+        // Perform expensive region lookups asynchronously
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                try {
+                    // Get regions at both locations (expensive operation)
+                    Set<String> fromRegions = zoneManager.getRegionsAt(from);
+                    Set<String> toRegions = zoneManager.getRegionsAt(to);
+                    
+                    // Check if player is entering a new region
+                    Set<String> enteringRegions = new HashSet<>(toRegions);
+                    enteringRegions.removeAll(fromRegions);
+                    
+                    // Check if player is leaving a region
+                    Set<String> leavingRegions = new HashSet<>(fromRegions);
+                    leavingRegions.removeAll(toRegions);
+                    
+                    // If there are restrictions to check, handle on main thread
+                    if (!enteringRegions.isEmpty() || !leavingRegions.isEmpty()) {
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                // Verify player is still online and event is still valid
+                                if (!player.isOnline()) {
+                                    return;
+                                }
+                                
+                                // Handle entering new regions
+                                for (String region : enteringRegions) {
+                                    if (!zoneManager.canEnterRegion(player, region)) {
+                                        // Check if it's backward movement
+                                        ZoneManager.PlayerZoneData data = zoneManager.getPlayerData(playerId);
+                                        if (data != null) {
+                                            int enteringZoneIndex = data.getZoneIndex(region);
+                                            if (enteringZoneIndex >= 0 && enteringZoneIndex < data.getCurrentZoneIndex()) {
+                                                // Backward movement
+                                                teleportPlayerBack(player, from, to);
+                                                sendMessage(player, "cannot-go-backward");
+                                                return;
+                                            }
+                                        }
+                                        // Player cannot enter this region yet
+                                        teleportPlayerBack(player, from, to);
+                                        sendMessage(player, "wrong-sequence");
+                                        return;
+                                    }
+                                }
+                                
+                                // Handle leaving current regions
+                                for (String region : leavingRegions) {
+                                    if (!zoneManager.canLeaveRegion(player, region)) {
+                                        // Player cannot leave this region yet
+                                        teleportPlayerBack(player, from, to);
+                                        sendMessage(player, "cannot-leave");
+                                        return;
+                                    }
+                                }
+                            }
+                        }.runTask(plugin);
                     }
+                } finally {
+                    // Always remove from processing set after a short delay
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            processingPlayers.remove(playerId);
+                        }
+                    }.runTaskLater(plugin, 1L);
                 }
-                // Player cannot enter this region yet
-                teleportPlayerBack(player, from, to);
-                sendMessage(player, "wrong-sequence");
-                return;
             }
-        }
-        
-        // Handle leaving current regions
-        for (String region : leavingRegions) {
-            if (!zoneManager.canLeaveRegion(player, region)) {
-                // Player cannot leave this region yet
-                teleportPlayerBack(player, from, to);
-                sendMessage(player, "cannot-leave");
-                return;
-            }
-        }
+        }.runTaskAsynchronously(plugin);
     }
     
     /**
