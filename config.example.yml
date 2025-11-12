@@ -1,0 +1,79 @@
+# Example Configuration for kZones
+
+# This is an example configuration showing different ways to set up zone sequences
+# Copy and modify this to match your WorldGuard regions
+
+zone-sequences:
+  # Simple linear path through tutorial zones
+  tutorial_path:
+    - "spawn"
+    - "tutorial_welcome"
+    - "tutorial_basics"
+    - "tutorial_combat"
+    - "tutorial_complete"
+  
+  # Quest line with multiple stages
+  quest_line_1:
+    - "quest_hub"
+    - "forest_entrance"
+    - "forest_deep"
+    - "boss_arena"
+    - "reward_room"
+  
+  # PvP progression path
+  pvp_ranks:
+    - "training_grounds"
+    - "bronze_arena"
+    - "silver_arena"
+    - "gold_arena"
+    - "champion_arena"
+
+# Teleport settings control how players are pushed back
+teleport:
+  # Distance in blocks to push player back (higher = stronger pushback)
+  pushback-distance: 2.0
+  
+  # Show particle effects when restricting movement
+  show-particles: true
+  
+  # Play sound when restricting movement
+  play-sound: true
+  
+  # Sound to play (Minecraft sound name)
+  # Common options: ENTITY_ENDERMAN_TELEPORT, BLOCK_NOTE_BLOCK_PLING, ENTITY_VILLAGER_NO
+  sound: "ENTITY_ENDERMAN_TELEPORT"
+
+# Customize all messages sent to players
+messages:
+  # Message when trying to enter wrong region
+  wrong-sequence: "&cYou cannot enter this region yet! Follow the correct sequence."
+  
+  # Message when trying to leave current region
+  cannot-leave: "&cYou must complete this zone before moving on!"
+  
+  # Message when sequence starts
+  sequence-started: "&aZone sequence started! Follow the path."
+  
+  # Message when sequence stops
+  sequence-stopped: "&eZone sequence stopped."
+  
+  # Message when player is allowed to proceed to next zone
+  next-zone: "&aYou can now proceed to the next zone!"
+  
+  # Prefix added to all messages
+  prefix: "&8[&6kZones&8]&r "
+
+# Enable debug mode to see detailed logging
+debug: false
+
+# Note: Use & for color codes:
+# &0 Black      &8 Dark Gray
+# &1 Dark Blue  &9 Blue
+# &2 Dark Green &a Green
+# &3 Dark Aqua  &b Aqua
+# &4 Dark Red   &c Red
+# &5 Purple     &d Light Purple
+# &6 Gold       &e Yellow
+# &7 Gray       &f White
+# &l Bold       &o Italic
+# &n Underline  &r Reset
