@@ -298,7 +298,7 @@ public class ZoneManager {
         // Update config
         plugin.getConfig().set("target.enabled", true);
         plugin.getConfig().set("target.zone", zoneName);
-        plugin.saveConfig();
+        plugin.saveConfigAsync();
         
         // Update all player data with target
         for (PlayerZoneData data : playerData.values()) {
@@ -317,7 +317,7 @@ public class ZoneManager {
         
         plugin.getConfig().set("target.enabled", false);
         plugin.getConfig().set("target.zone", "");
-        plugin.saveConfig();
+        plugin.saveConfigAsync();
         
         for (PlayerZoneData data : playerData.values()) {
             data.setTargetZone(null);
